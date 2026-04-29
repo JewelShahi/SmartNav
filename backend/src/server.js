@@ -20,7 +20,11 @@ app.use(helmet());
 
 app.use(
   cors({
-    origin: ["http://localhost:3000", "http://localhost:3001"],
+    origin: [
+      "http://localhost:3000", 
+      "http://localhost:3001",
+      /\.vercel\.app$/ // This allows any Vercel preview/production URL
+    ],
     credentials: true,
   }),
 );
@@ -84,14 +88,17 @@ app.use((err, req, res, next) => {
 });
 
 // 7. Start Server
-app.listen(PORT, () => {
-  console.log(`Backend running on port ${PORT}`);
-  console.log(`CORS allowed for: http://localhost:3000`);
-  console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
-  console.log(`ORS API: ${process.env.ORS_API_KEY ? "Configured" : "Missing"}`);
-  console.log(
-    `OpenCage: ${process.env.OPENCAGE_API_KEY ? "Configured" : "Missing"}`,
-  );
-});
-
+if (process.env.NODE_ENV !== "production") {
+  app.listen(PORT, () => {
+    console.log(`Backend running on port ${PORT}`);
+    console.log(`CORS allowed for: http://localhost:3000`);
+    console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
+    console.log(
+      `ORS API: ${process.env.ORS_API_KEY ? "Configured" : "Missing"}`,
+    );
+    console.log(
+      `OpenCage: ${process.env.OPENCAGE_API_KEY ? "Configured" : "Missing"}`,
+    );
+  });
+}
 export default app;
