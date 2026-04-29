@@ -27,36 +27,57 @@ export const RouteService = {
 export const GeocodeService = {
   /**
    * GET /api/geocode/autocomplete
-   * Supports debounced search with AbortSignal cancellation
-   * Parameters:
-   * 1. query: The string to search
-   * 2. lat: Optional latitude for location bias
-   * 3. lng: Optional longitude for location bias
-   * 4. signal: The AbortSignal from AbortController
    */
   autocomplete: async (query, lat = null, lng = null, signal = null) => {
-    // Prevent API calls for very short strings
-    if (!query || query.trim().length < 3) return [];
+    // 1. Ensure we don't send empty or tiny strings
+    const trimmedQuery = query?.trim() || '';
+    if (trimmedQuery.length < 3) return [];
 
-    const params = { q: query.trim() };
+    // 2. Build params object
+    const params = { q: trimmedQuery };
     
-    // Only add coordinates to params if they are valid numbers
-    if (lat !== null && !isNaN(lat)) params.lat = lat;
-    if (lng !== null && !isNaN(lng)) params.lng = lng;
+    // 3. Strict coordinate check
+    // We use Number() to ensure we aren't passing strings like "null" or "[object]"
+    if (lat !== null && !isNaN(parseFloat(lat))) {
+      params.lat = parseFloat(lat);
+    }
+    if (lng !== null && !isNaN(parseFloat(lng))) {
+      params.lng = parseFloat(lng);
+    }
     
-    // Pass 'signal' inside the Axios config object
-    return api.get("/geocode/autocomplete", { 
-      params, 
-      signal 
-    });
+    try {
+      // 4. Axios GET request
+      // We wrap this to ensure we return the data part of the response
+      const response = await api.get("/geocode/autocomplete", { 
+        params, 
+        signal 
+      });
+
+      // 5. Always return an array (even if the backend sends something else)
+      return Array.isArray(response) ? response : (response?.data || []);
+    } catch (error) {
+      if (error.name === 'AbortError' || error.code === 'ERR_CANCELED') {
+        return null; // Silent return for cancelled requests
+      }
+      console.error("Autocomplete error:", error);
+      return [];
+    }
   },
 
   /**
    * GET /api/geocode/reverse
-   * Converts coordinates into a human-readable address
    */
-  reverseGeocode: (lat, lng) => 
-    api.get("/geocode/reverse", { 
-      params: { lat, lng } 
-    }),
+  reverseGeocode: async (lat, lng) => {
+    try {
+      return await api.get("/geocode/reverse", { 
+        params: { 
+          lat: parseFloat(lat), 
+          lng: parseFloat(lng) 
+        } 
+      });
+    } catch (error) {
+      console.error("Reverse geocode error:", error);
+      throw error;
+    }
+  },
 };
