@@ -13,15 +13,14 @@ import healthRoutes from "./routes/health.js";
 const app = express();
 
 // Use the PORT from .env strictly
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 5000;
 
 // 1. Security Middleware
 app.use(helmet());
 
 app.use(
   cors({
-    // Hardcoded to 3000 for frontend as requested
-    origin: "http://localhost:3000",
+    origin: ["http://localhost:3000", "http://localhost:3001"],
     credentials: true,
   }),
 );
@@ -51,7 +50,18 @@ app.use((req, res, next) => {
   next();
 });
 
+// Debug: Log all requests before they reach routes
+app.use((req, res, next) => {
+  console.log(`[DEBUG] Incoming: ${req.method} ${req.url}`);
+  next();
+});
+
 // 4. Routes
+console.log("Registering routes...");
+console.log("  /api/health ->", healthRoutes ? "loaded" : "missing");
+console.log("  /api/geocode ->", geocodeRoutes ? "loaded" : "missing");
+console.log("  /api/route ->", routeRoutes ? "loaded" : "missing");
+
 app.use("/api/health", healthRoutes);
 app.use("/api/geocode", searchLimiter, geocodeRoutes);
 app.use("/api/route", optimizeLimiter, routeRoutes);

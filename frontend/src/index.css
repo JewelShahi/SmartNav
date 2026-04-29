@@ -17,3 +17,7 @@ body {
 .dark .glass-card {
   @apply bg-slate-900/70 border-white/5;
 }
+
+.badge {
+  @apply px-2 py-2 text-xs font-bold rounded-full;
+}

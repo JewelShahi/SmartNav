@@ -1,157 +1,61 @@
 import express from "express";
-import {
-  optimizeRoute,
-  buildDistanceMatrix,
-} from "../services/routeService.js";
+import { optimizeRoute } from "../services/routeService.js";
 import { geocodeAddress } from "../services/geocodeService.js";
 
 const router = express.Router();
 
-/**
- * Validate a coordinate object { lat, lng }
- */
-const isValidCoord = (obj) =>
-  obj &&
-  typeof obj.lat === "number" &&
-  typeof obj.lng === "number" &&
-  obj.lat >= -90 &&
-  obj.lat <= 90 &&
-  obj.lng >= -180 &&
-  obj.lng <= 180;
-
-/**
- * Resolve a stop that may have coordinates or just an address string.
- * If `lat`/`lng` are provided, use them; otherwise geocode the address.
- */
-const resolveStop = async (stop) => {
-  if (isValidCoord(stop)) {
-    return {
-      lat: stop.lat,
-      lng: stop.lng,
-      address: stop.address || `${stop.lat.toFixed(5)}, ${stop.lng.toFixed(5)}`,
-      label: stop.label || stop.address || "Stop",
-    };
-  }
-
-  if (stop.address && typeof stop.address === "string") {
-    const geocoded = await geocodeAddress(stop.address);
-    return {
-      lat: geocoded.lat,
-      lng: geocoded.lng,
-      address: geocoded.formattedAddress,
-      label: stop.label || stop.address,
-    };
-  }
-
-  throw new Error(
-    `Invalid stop: must have lat/lng or address. Got: ${JSON.stringify(stop)}`,
-  );
-};
-
-/**
- * POST /api/route/optimize
- *
- * Body:
- * {
- *   origin: { lat, lng, address? } | { address: string },
- *   stops: Array<{ lat, lng, label? } | { address: string, label? }>,
- *   options?: {
- *     optimizeFor: 'duration' | 'distance',  // default: 'duration'
- *     roundTrip: boolean                      // default: true
- *   }
- * }
- *
- * Returns:
- * {
- *   optimizedOrder: [...],
- *   route: { geometry, totalDistance, totalDuration, steps },
- *   legs: [...],
- *   summary: {...}
- * }
- */
 router.post("/optimize", async (req, res, next) => {
   try {
     const { origin, stops, options = {} } = req.body;
 
-    // ── Validate input ──────────────────────────────────────────────────────
-    if (!origin) {
-      return res.status(400).json({ error: "origin is required" });
-    }
-    if (!Array.isArray(stops) || stops.length === 0) {
-      return res.status(400).json({ error: "stops must be a non-empty array" });
-    }
-    if (stops.length > 24) {
-      return res
-        .status(400)
-        .json({ error: "Maximum 24 stops supported (ORS matrix limit)" });
-    }
+    if (!origin) return res.status(400).json({ error: "Origin is required" });
 
-    const { optimizeFor = "duration", roundTrip = true } = options;
-    if (!["duration", "distance"].includes(optimizeFor)) {
-      return res
-        .status(400)
-        .json({ error: 'optimizeFor must be "duration" or "distance"' });
-    }
+    const validStops = Array.isArray(stops)
+      ? stops.filter(s => {
+          if (typeof s === 'string') return s.trim() !== '';
+          if (typeof s === 'object' && s !== null) return !!(s.address || (s.lat && s.lng));
+          return false;
+        })
+      : [];
 
-    // ── Resolve all addresses to coordinates ────────────────────────────────
-    console.log("[Route API] Resolving coordinates...");
-    const [resolvedOrigin, ...resolvedStops] = await Promise.all([
-      resolveStop(origin),
-      ...stops.map(resolveStop),
+    if (validStops.length === 0) return res.status(400).json({ error: "At least one stop is required" });
+
+    const resolveToCoords = async (input) => {
+      if (typeof input === 'object' && input !== null && input.lat && input.lng) {
+        return { lat: input.lat, lng: input.lng, address: input.address || '', label: input.label || input.address || '' };
+      }
+      const str = typeof input === 'object' ? input.address : input;
+      const result = await geocodeAddress(str);
+      return { lat: result.lat, lng: result.lng, address: str, label: str };
+    };
+
+    const resolvedPoints = await Promise.all([
+      resolveToCoords(origin),
+      ...validStops.map(resolveToCoords)
     ]);
 
-    // ── Run optimization ────────────────────────────────────────────────────
-    const result = await optimizeRoute(resolvedOrigin, resolvedStops, {
-      optimizeFor,
-      roundTrip,
-    });
+    const resolvedOrigin = resolvedPoints[0];
+    const resolvedStops = resolvedPoints.slice(1);
 
-    // Attach resolved address info to optimized order
-    const allPoints = [resolvedOrigin, ...resolvedStops];
-    result.optimizedOrder = result.optimizedOrder.map((item) => ({
+    const result = await optimizeRoute(resolvedOrigin, resolvedStops, { ...options, roundTrip: true });
+
+    const allLabels = [
+      typeof origin === 'object' ? (origin.address || '') : origin,
+      ...validStops.map(s => typeof s === 'object' ? (s.address || '') : s)
+    ];
+
+    result.optimizedOrder = result.optimizedOrder.map(item => ({
       ...item,
-      address: allPoints[item.index].address,
-      label: allPoints[item.index].label,
+      label: item.isOrigin ? allLabels[0] : allLabels[item.index]
     }));
 
     res.json(result);
   } catch (err) {
-    console.error("[Route API] Error:", err.message);
-    next(err);
-  }
-});
-
-/**
- * POST /api/route/matrix
- * Quick distance matrix without full optimization — useful for frontend previews.
- *
- * Body: { points: Array<{ lat, lng }> }
- * Returns: { matrix: N×N array of { distance, duration } }
- */
-router.post("/matrix", async (req, res, next) => {
-  try {
-    const { points } = req.body;
-
-    if (!Array.isArray(points) || points.length < 2) {
-      return res
-        .status(400)
-        .json({ error: "points must be an array of at least 2 coordinates" });
-    }
-    if (points.length > 25) {
-      return res
-        .status(400)
-        .json({ error: "Maximum 25 points for matrix calculation" });
-    }
-    if (!points.every(isValidCoord)) {
-      return res
-        .status(400)
-        .json({ error: "All points must have valid lat and lng" });
-    }
-
-    const matrix = await buildDistanceMatrix(points);
-    res.json({ matrix });
-  } catch (err) {
-    next(err);
+    console.error("[Route API Error]:", err.message);
+    res.status(500).json({ 
+      error: "Route calculation failed. Check if addresses are valid.",
+      details: err.message 
+    });
   }
 });
 

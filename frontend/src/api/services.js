@@ -1,25 +1,32 @@
 import api from "./axios";
 
 export const RouteService = {
-  optimize: (origin, stops, roundTrip = true) =>
-    api.post("/route/optimize", {
-      origin: { address: origin },
-      stops: stops.map((s) => ({ address: s })),
-      options: { roundTrip },
-    }),
+  optimize: async (origin, stops, roundTrip = false) => {
+    const filteredStops = stops.filter(s => s && s.trim());
+    return api.post("/route/optimize", {
+      origin: origin.trim(),
+      stops: filteredStops.map((s) => s.trim()),
+      options: { 
+        optimizeFor: 'duration',
+        roundTrip: true
+      },
+    });
+  },
 
   getMatrix: (points) => api.post("/route/matrix", { points }),
 };
 
 export const GeocodeService = {
-  autocomplete: (query) =>
-    api.get(`/geocode/autocomplete`, { params: { q: query } }),
+  autocomplete: async (query, lat = null, lng = null) => {
+    if (!query || query.trim().length < 3) return [];
 
-  // Renamed to reverseGeocode to match the App.jsx call
-  reverseGeocode: async (lat, lng) => {
-    const { data } = await api.get(`/geocode/reverse`, {
-      params: { lat, lng },
-    });
-    return data;
+    const params = { q: query.trim() };
+    if (lat !== null) params.lat = lat;
+    if (lng !== null) params.lng = lng;
+    
+    return api.get("/geocode/autocomplete", { params });
   },
+
+  reverseGeocode: (lat, lng) => 
+    api.get("/geocode/reverse", { params: { lat, lng } }),
 };
