@@ -1,3 +1,19 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Base styles */
+body {
+  @apply transition-colors duration-500;
+}
+
+/* Glass card utility (Tailwind-only equivalent) */
+.glass-card {
+  @apply backdrop-blur-xl border rounded-xl;
+  @apply bg-white/70 border-white/10;
+}
+
+/* Dark mode */
+.dark .glass-card {
+  @apply bg-slate-900/70 border-white/5;
+}
