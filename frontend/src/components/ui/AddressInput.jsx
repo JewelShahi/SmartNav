@@ -16,7 +16,7 @@ export const AddressInput = ({ value, onChange, placeholder = 'Search address...
   const debounceRef = useRef(null);
   const abortRef = useRef(null);
 
-  /* ── position dropdown via portal to escape overflow:hidden parents ── */
+  // Updates dropdown position to float correctly over other elements
   const updateDropdownPos = useCallback(() => {
     if (!wrapperRef.current) return;
     const rect = wrapperRef.current.getBoundingClientRect();
@@ -46,7 +46,6 @@ export const AddressInput = ({ value, onChange, placeholder = 'Search address...
     };
   }, [updateDropdownPos]);
 
-  /* ── debounced autocomplete with abort ── */
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     if (abortRef.current) abortRef.current.abort();
@@ -61,7 +60,7 @@ export const AddressInput = ({ value, onChange, placeholder = 'Search address...
       abortRef.current = new AbortController();
       setLoading(true);
       try {
-        // Pass null for lat and lng so the signal is correctly recognized as the 4th argument
+        // FIX 1: Pass null for lat/lng to shift the signal to the 4th parameter
         const results = await GeocodeService.autocomplete(
           value,
           null,
@@ -69,7 +68,8 @@ export const AddressInput = ({ value, onChange, placeholder = 'Search address...
           abortRef.current.signal
         );
 
-        const list = results || [];
+        // FIX 2: Ensure 'list' is always an array to prevent the ".map is not a function" error
+        const list = Array.isArray(results) ? results : [];
         setSuggestions(list);
 
         if (list.length > 0) {
@@ -118,64 +118,67 @@ export const AddressInput = ({ value, onChange, placeholder = 'Search address...
     inputRef.current?.focus();
   };
 
-  /* ── Portal dropdown ── */
+  // The Portal dropdown ensures the list isn't cut off by parent containers
   const dropdown = isOpen && suggestions.length > 0
     ? createPortal(
-      <div
-        style={{
-          position: 'absolute',
-          top: dropdownPos.top,
-          left: dropdownPos.left,
-          width: dropdownPos.width,
-          zIndex: 9999,
-        }}
-        className="animate-in fade-in slide-in-from-top-1 duration-150"
-      >
-        <ul className="bg-base-100 border border-base-300 rounded-2xl shadow-2xl overflow-hidden">
-          <div className="max-h-[240px] overflow-y-auto overscroll-contain">
-            {suggestions.map((s, i) => (
-              <li key={i}>
-                <button
-                  type="button"
-                  onMouseDown={(e) => { e.preventDefault(); handleSelect(s); }}
-                  onMouseEnter={() => setActiveIndex(i)}
-                  className={`flex items-start gap-3 px-4 py-3 w-full text-left border-b border-base-200 last:border-0 transition-colors duration-100 ${activeIndex === i
-                      ? 'bg-primary/10 text-primary'
-                      : 'text-base-content/60 hover:bg-base-200/60'
+        <div
+          style={{
+            position: 'absolute',
+            top: dropdownPos.top,
+            left: dropdownPos.left,
+            width: dropdownPos.width,
+            zIndex: 9999,
+          }}
+          className="animate-in fade-in slide-in-from-top-1 duration-150"
+        >
+          <ul className="bg-base-100 border border-base-300 rounded-2xl shadow-2xl overflow-hidden">
+            <div className="max-h-[240px] overflow-y-auto overscroll-contain">
+              {suggestions.map((s, i) => (
+                <li key={i}>
+                  <button
+                    type="button"
+                    onMouseDown={(e) => { e.preventDefault(); handleSelect(s); }}
+                    onMouseEnter={() => setActiveIndex(i)}
+                    className={`flex items-start gap-3 px-4 py-3 w-full text-left border-b border-base-200 last:border-0 transition-colors duration-100 ${
+                      activeIndex === i
+                        ? 'bg-primary/10 text-primary'
+                        : 'text-base-content/60 hover:bg-base-200/60'
                     }`}
-                >
-                  <MapPin
-                    size={14}
-                    className={`mt-0.5 shrink-0 ${activeIndex === i ? 'text-primary' : 'text-base-content/30'}`}
-                  />
-                  <span className="text-sm leading-snug line-clamp-2">{s.formattedAddress}</span>
-                </button>
-              </li>
-            ))}
-          </div>
-          <div className="px-4 py-1.5 border-t border-base-200 bg-base-200/40">
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-base-content/25">
-              ↑↓ navigate · Enter to select · Esc to close
-            </span>
-          </div>
-        </ul>
-      </div>,
-      document.body
-    )
+                  >
+                    <MapPin
+                      size={14}
+                      className={`mt-0.5 shrink-0 ${activeIndex === i ? 'text-primary' : 'text-base-content/30'}`}
+                    />
+                    <span className="text-sm leading-snug line-clamp-2">{s.formattedAddress}</span>
+                  </button>
+                </li>
+              ))}
+            </div>
+            <div className="px-4 py-1.5 border-t border-base-200 bg-base-200/40">
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-base-content/25">
+                ↑↓ navigate · Enter to select · Esc to close
+              </span>
+            </div>
+          </ul>
+        </div>,
+        document.body
+      )
     : null;
 
   return (
     <div ref={wrapperRef} className="relative w-full">
       <div
-        className={`relative flex items-center h-11 rounded-xl border bg-base-100 transition-all duration-200 ${focused
+        className={`relative flex items-center h-11 rounded-xl border bg-base-100 transition-all duration-200 ${
+          focused
             ? 'border-primary ring-2 ring-primary/15 shadow-sm'
             : 'border-base-300 hover:border-base-400'
-          }`}
+        }`}
       >
         <MapPin
           size={15}
-          className={`absolute left-3.5 shrink-0 pointer-events-none transition-colors duration-200 ${focused ? 'text-primary' : 'text-base-content/30'
-            }`}
+          className={`absolute left-3.5 shrink-0 pointer-events-none transition-colors duration-200 ${
+            focused ? 'text-primary' : 'text-base-content/30'
+          }`}
         />
         <input
           ref={inputRef}
