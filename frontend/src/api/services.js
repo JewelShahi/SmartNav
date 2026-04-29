@@ -17,14 +17,16 @@ export const RouteService = {
 };
 
 export const GeocodeService = {
-  autocomplete: async (query, lat = null, lng = null) => {
+  // Add 'signal' as the 4th parameter
+  autocomplete: async (query, lat = null, lng = null, signal = null) => {
     if (!query || query.trim().length < 3) return [];
 
     const params = { q: query.trim() };
     if (lat !== null) params.lat = lat;
     if (lng !== null) params.lng = lng;
     
-    return api.get("/geocode/autocomplete", { params });
+    // Pass the signal to axios here
+    return api.get("/geocode/autocomplete", { params, signal });
   },
 
   reverseGeocode: (lat, lng) => 

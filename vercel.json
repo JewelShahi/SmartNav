@@ -13,8 +13,12 @@
   },
   "rewrites": [
     {
+      "source": "/api/(.*)",
+      "destination": "/backend/src/server.js" 
+    },
+    {
       "source": "/((?!api/).*)",
-      "destination": "/index.html"
+      "destination": "/"
     }
   ]
 }

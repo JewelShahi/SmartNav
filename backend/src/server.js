@@ -61,14 +61,15 @@ app.use((req, res, next) => {
 });
 
 // 4. Routes
-console.log("Registering routes...");
-console.log("  /api/health ->", healthRoutes ? "loaded" : "missing");
-console.log("  /api/geocode ->", geocodeRoutes ? "loaded" : "missing");
-console.log("  /api/route ->", routeRoutes ? "loaded" : "missing");
+console.log("Registering routes (without /api prefix for Vercel Compatibility)...");
+console.log(" /health ->", healthRoutes ? "loaded" : "missing");
+console.log(" /geocode ->", geocodeRoutes ? "loaded" : "missing");
+console.log(" /route ->", routeRoutes ? "loaded" : "missing");
 
-app.use("/api/health", healthRoutes);
-app.use("/api/geocode", searchLimiter, geocodeRoutes);
-app.use("/api/route", optimizeLimiter, routeRoutes);
+// IMPORTANT: Remove the "/api" prefix here
+app.use("/health", healthRoutes);
+app.use("/geocode", searchLimiter, geocodeRoutes);
+app.use("/route", optimizeLimiter, routeRoutes);
 
 // 5. 404 Handler
 app.use((req, res) => {
