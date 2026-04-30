@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Navbar } from './components/layout/Navbar';
-import { Footer } from './components/layout/Footer';
+import Navbar from './components/layout/Navbar';
+import Footer from './components/layout/Footer.jsx';
 import { Map, MapControls, MapMarker, MapSource, MapLayer } from './components/ui/map';
 import { RouteService } from './api/services';
 import { AddressInput } from './components/ui/AddressInput';

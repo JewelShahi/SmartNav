@@ -1,7 +1,7 @@
 import React from 'react';
 import { Sun, Moon } from 'lucide-react';
 
-export const Navbar = ({ theme, toggleTheme }) => {
+const Navbar = ({ theme, toggleTheme }) => {
   return (
     <nav className={`sticky top-0 z-50 w-full transition-all duration-500 backdrop-blur-xl ${theme === 'dark'
         ? 'bg-base-300/80 border-b border-white/[0.04]'
@@ -58,3 +58,5 @@ export const Navbar = ({ theme, toggleTheme }) => {
     </nav>
   );
 };
+
+export default Navbar;

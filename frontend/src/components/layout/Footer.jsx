@@ -5,7 +5,7 @@ const Footer = () => {
 
   return (
     <footer className="relative w-full border-t border-base-300 bg-base-200/60 backdrop-blur-xl">
-      {/* subtle glow line like navbar */}
+      {/* subtle glow line */}
       <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
 
       <div className="px-4 py-6 md:px-6 lg:px-8">
