@@ -34,7 +34,7 @@ export const Map = React.forwardRef(
       center = [0, 0],
       zoom = 12,
       // mapStyle = "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json",
-      mapStyle = "https://tiles.openfreemap.org/styles/liberty",
+      mapStyle = "https://tiles.openfreemap.org/styles/bright",
       children,
       style,
       ...props
@@ -117,7 +117,7 @@ export const RouteLayer = ({
           type="line"
           layout={{ "line-cap": "round", "line-join": "round" }}
           paint={{
-            "line-color": "#1f2937", // Pure dark line
+            "line-color": "#1f2937",
             "line-width": 2.5,
             "line-opacity": 0.7,
             "line-dasharray": [4, 4],

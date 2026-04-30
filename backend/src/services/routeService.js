@@ -1,7 +1,9 @@
 import axios from "axios";
 
 const SEGMENT_COLORS = [
-  "#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"
+  '#3b82f6', '#10b981', '#f59e0b', '#ef4444',
+  '#8b5cf6', '#f97316', '#84cc16', '#ec4899',
+  '#14b8a6', '#06b6d4',
 ];
 
 export const getSegmentColor = (index, isReturn) => {
@@ -10,48 +12,157 @@ export const getSegmentColor = (index, isReturn) => {
 };
 
 /**
+ * Nearest Neighbor heuristic — produces the initial upper bound for B&B.
+ * Returns the tour as an array of point indices (origin → ... → origin).
+ */
+const nearestNeighborTour = (matrix, numPoints, optimizeFor) => {
+  const order = [0];
+  const unvisited = new Set(Array.from({ length: numPoints - 1 }, (_, i) => i + 1));
+  let current = 0;
+
+  while (unvisited.size > 0) {
+    let nearest = -1;
+    let minVal = Infinity;
+    for (const next of unvisited) {
+      const val = matrix[current][next][optimizeFor];
+      if (val < minVal) { minVal = val; nearest = next; }
+    }
+    order.push(nearest);
+    unvisited.delete(nearest);
+    current = nearest;
+  }
+
+  order.push(0);
+  return order;
+}
+
+/**
+ * Lower-bound estimator for B&B.
+ * For each unvisited node (+ the current node), adds the cheapest edge
+ * leaving it. This is admissible (never overestimates the true cost).
+ */
+const lowerBound = (matrix, partialCost, visited, currentNode, optimizeFor) => {
+  let bound = partialCost;
+  const numPoints = matrix.length;
+
+  // Min outgoing edge from current node to any unvisited node
+  let minFromCurrent = Infinity;
+  for (let j = 0; j < numPoints; j++) {
+    if (!visited.has(j)) {
+      minFromCurrent = Math.min(minFromCurrent, matrix[currentNode][j][optimizeFor]);
+    }
+  }
+  if (minFromCurrent === Infinity) minFromCurrent = 0;
+  bound += minFromCurrent;
+
+  // Min outgoing edge from each remaining unvisited node
+  for (let i = 0; i < numPoints; i++) {
+    if (visited.has(i) || i === currentNode) continue;
+    let minEdge = Infinity;
+    for (let j = 0; j < numPoints; j++) {
+      if (i !== j && (!visited.has(j) || j === 0)) {
+        minEdge = Math.min(minEdge, matrix[i][j][optimizeFor]);
+      }
+    }
+    if (minEdge !== Infinity) bound += minEdge;
+  }
+
+  return bound;
+}
+
+/**
+ * Branch and Bound TSP — exact solver with NN as the initial upper bound.
+ * Falls back gracefully to NN result for large inputs (> 10 stops).
+ */
+function branchAndBound(matrix, optimizeFor) {
+  const numPoints = matrix.length;
+
+  // NN gives us a strong initial upper bound immediately
+  const nnTour = nearestNeighborTour(matrix, numPoints, optimizeFor);
+  let bestCost = nnTour
+    .slice(0, -1)
+    .reduce((sum, node, i) => sum + matrix[node][nnTour[i + 1]][optimizeFor], 0);
+  let bestTour = [...nnTour];
+
+  // B&B only pays off up to ~10 stops; beyond that NN is already fast and accurate
+  if (numPoints > 11) return bestTour;
+
+  // Stack-based DFS branch and bound
+  const stack = [{
+    path: [0],
+    visited: new Set([0]),
+    currentCost: 0,
+    currentNode: 0,
+  }];
+
+  while (stack.length > 0) {
+    const { path, visited, currentCost, currentNode } = stack.pop();
+
+    // All nodes visited — close the tour back to origin
+    if (visited.size === numPoints) {
+      const totalCost = currentCost + matrix[currentNode][0][optimizeFor];
+      if (totalCost < bestCost) {
+        bestCost = totalCost;
+        bestTour = [...path, 0];
+      }
+      continue;
+    }
+
+    // Expand children in NN order (visit most-promising branches first)
+    const children = [];
+    for (let next = 0; next < numPoints; next++) {
+      if (visited.has(next)) continue;
+      const edgeCost = matrix[currentNode][next][optimizeFor];
+      const newCost = currentCost + edgeCost;
+      const newVisited = new Set(visited);
+      newVisited.add(next);
+      const lb = lowerBound(matrix, newCost, newVisited, next, optimizeFor);
+      if (lb < bestCost) {
+        children.push({ next, newCost, newVisited, lb });
+      }
+    }
+
+    // Push in reverse-NN order so stack pops the nearest neighbor first
+    children.sort((a, b) => b.lb - a.lb);
+    for (const { next, newCost, newVisited } of children) {
+      stack.push({
+        path: [...path, next],
+        visited: newVisited,
+        currentCost: newCost,
+        currentNode: next,
+      });
+    }
+  }
+
+  return bestTour;
+}
+
+/**
  * Optimized Route Calculation
- * RESTORED: Standard async/await flow for standalone Node execution
  */
 export const optimizeRoute = async (origin, stops, options = {}) => {
   const { optimizeFor = "duration" } = options;
   const allPoints = [origin, ...stops];
   const numPoints = allPoints.length;
 
-  // 1. Build Distance Matrix via OSRM
+  // Build Distance Matrix via OSRM
   const matrix = await buildDistanceMatrix(allPoints);
 
-  // 2. Simple Nearest Neighbor TSP Algorithm
-  const optimizedOrder = [0];
-  const unvisited = new Set(Array.from({ length: numPoints - 1 }, (_, i) => i + 1));
-  let currentIndex = 0;
+  // Branch and Bound TSP (NN-seeded, exact up to 10 stops)
+  const optimizedOrder = branchAndBound(matrix, optimizeFor);
 
-  while (unvisited.size > 0) {
-    let nearestIndex = -1;
-    let minVal = Infinity;
-    for (const nextIndex of unvisited) {
-      const val = matrix[currentIndex][nextIndex][optimizeFor];
-      if (val < minVal) { minVal = val; nearestIndex = nextIndex; }
-    }
-    optimizedOrder.push(nearestIndex);
-    unvisited.delete(nearestIndex);
-    currentIndex = nearestIndex;
-  }
-
-  optimizedOrder.push(0); // Return to origin
-
-  // 3. Get Geometry for segments
+  // Get Geometry for segments
   const segments = [];
   for (let i = 0; i < optimizedOrder.length - 1; i++) {
     const from = allPoints[optimizedOrder[i]];
     const to = allPoints[optimizedOrder[i + 1]];
     const isReturn = i === optimizedOrder.length - 2;
     const coords = `${from.lng},${from.lat};${to.lng},${to.lat}`;
-    
+
     const res = await axios.get(
       `https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson`
     );
-    
+
     segments.push({
       segmentIndex: i,
       fromIndex: optimizedOrder[i],
@@ -97,7 +208,7 @@ export const buildDistanceMatrix = async (points) => {
   );
 };
 
-function getBBox(coords) {
+const getBBox = (coords) => {
   let minLng = Infinity, maxLng = -Infinity, minLat = Infinity, maxLat = -Infinity;
   for (const [lng, lat] of coords) {
     if (lng < minLng) minLng = lng; if (lng > maxLng) maxLng = lng;

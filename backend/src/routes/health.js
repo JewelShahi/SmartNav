@@ -13,7 +13,6 @@ router.get('/', (req, res) => {
     services: {
       ors: !!process.env.ORS_API_KEY,
       opencage: !!process.env.OPENCAGE_API_KEY,
-      // Mapbox is optional depending on your frontend setup
       mapbox: !!process.env.MAPBOX_TOKEN, 
     },
   });

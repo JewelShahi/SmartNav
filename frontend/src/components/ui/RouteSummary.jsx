@@ -13,7 +13,7 @@ export const RouteSummary = ({ data }) => {
   const km = (data.summary.totalDistance / 1000).toFixed(1);
   const mins = Math.round(data.summary.totalDuration / 60);
   const avgSpeed = data.summary.totalDuration > 0
-    ? ((data.summary.totalDistance / 1000) / (data.summary.totalDuration / 3600)).toFixed(0)
+    ? Math.round((data.summary.totalDistance / 1000) / (data.summary.totalDuration / 3600))
     : 0;
   const stops = data.optimizedOrder?.filter(p => !p.isOrigin).length || 0;
 
@@ -23,7 +23,7 @@ export const RouteSummary = ({ data }) => {
       {/* ── Unified Main Stats Card ── */}
       <div className="overflow-hidden rounded-[1.25rem] border border-base-300 shadow-lg">
 
-        {/* 1. Distance Hero (Gradient BG) */}
+        {/* Distance Hero (Gradient BG) */}
         <div className="relative overflow-hidden bg-gradient-to-br from-primary via-primary/95 to-primary/80 p-5 pb-6 shadow-lg shadow-primary/20">
           <div className="pointer-events-none absolute -top-8 -right-8 h-28 w-28 rounded-full bg-white/[0.06]" />
           <div className="pointer-events-none absolute -bottom-6 -left-6 h-20 w-20 rounded-full bg-black/[0.06]" />
@@ -42,7 +42,7 @@ export const RouteSummary = ({ data }) => {
           </div>
         </div>
 
-        {/* 2. Other Stats (Base-200 BG) */}
+        {/* Other Stats (Base-200 BG) */}
         <div className="bg-base-100/40 p-4 border-t border-primary/10">
           <div className="grid grid-cols-3 gap-2.5">
             <div className="flex flex-col items-center gap-1.5 rounded-xl bg-base-200/60 border border-base-300/60 py-3 px-2 shadow-lg">
