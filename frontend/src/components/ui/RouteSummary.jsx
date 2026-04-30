@@ -49,14 +49,14 @@ export const RouteSummary = ({ data }) => {
               <Clock size={15} className="text-secondary" strokeWidth={2} />
               <div className="text-center">
                 <span className="block text-lg font-extrabold tabular-nums text-secondary leading-none">{mins}</span>
-                <span className="text-[9px] font-bold uppercase tracking-widest text-base-content/40">Min</span>
+                <span className="text-[9px] font-bold uppercase tracking-widest text-base-content/40">Min</span> <span className="text-[9px] font-bold uppercase tracking-widest text-base-content/20">Estimated</span>
               </div>
             </div>
             <div className="flex flex-col items-center gap-1.5 rounded-xl bg-base-200/60 border border-base-300/60 py-3 px-2 shadow-lg">
               <Zap size={15} className="text-warning" strokeWidth={2} />
               <div className="text-center">
                 <span className="block text-lg font-extrabold tabular-nums text-warning leading-none">{avgSpeed}</span>
-                <span className="text-[9px] font-bold uppercase tracking-widest text-base-content/40">Km/h</span> <span className="text-[9px] font-bold uppercase tracking-widest text-base-content/20">Estimated</span>
+                <span className="text-[9px] font-bold uppercase tracking-widest text-base-content/40">Km/h</span> <span className="text-[9px] font-bold uppercase tracking-widest text-base-content/20">Avr. Speed Est.</span>
               </div>
             </div>
             <div className="flex flex-col items-center gap-1.5 rounded-xl bg-base-200/60 border border-base-300/80 py-3 px-2 shadow-lg">
