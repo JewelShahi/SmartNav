@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer.jsx';
-import { Map, MapControls, MapMarker, MapSource, MapLayer } from './components/ui/map';
+import { Map, MapControls, MapMarker, MapSource, MapLayer, MarkerLeader } from './components/ui/map';
 import { RouteService } from './api/services';
 import { AddressInput } from './components/ui/AddressInput';
 import { RouteSummary } from './components/ui/RouteSummary';
@@ -349,6 +349,22 @@ const App = () => {
                       paint={{ 'line-color': seg.color ?? SEG_COLORS[i % SEG_COLORS.length], 'line-width': 5, 'line-opacity': 0.95 }}
                     />
                   </MapSource>
+                );
+              })}
+
+              {/* ── MARKER LEADERS (route end → pin) ── */}
+              {routeData?.segments?.map((seg, i) => {
+                if (seg.isReturn) return null;
+                const dest = routeData.optimizedOrder[seg.toIndex];
+                if (!dest?.point) return null;
+                return (
+                  <MarkerLeader
+                    key={`leader-${i}`}
+                    id={`leader-${i}`}
+                    from={seg.geometry.coordinates.at(-1)}
+                    to={[dest.point.lng, dest.point.lat]}
+                    color={seg.color ?? SEG_COLORS[i % SEG_COLORS.length]}
+                  />
                 );
               })}
 

@@ -261,6 +261,35 @@ export const RouteMarker = ({
 };
 
 /* ─────────────────────────────────────────────────────────────
+   MarkerLeader — dashed line from route end → marker pin
+   ───────────────────────────────────────────────────────────── */
+export const MarkerLeader = ({ id, from, to, color = "#3b82f6" }) => {
+  const geojson = React.useMemo(() => ({
+    type: "Feature",
+    geometry: {
+      type: "LineString",
+      coordinates: [from, to], // both are [lng, lat]
+    },
+  }), [from, to]);
+
+  return (
+    <Source id={id} type="geojson" data={geojson}>
+      <Layer
+        id={`${id}-leader`}
+        type="line"
+        layout={{ "line-cap": "round", "line-join": "round" }}
+        paint={{
+          "line-color": color,
+          "line-width": 2,
+          "line-opacity": 0.85,
+          "line-dasharray": [1.5, 3],
+        }}
+      />
+    </Source>
+  );
+};
+
+/* ─────────────────────────────────────────────────────────────
    ResizableMapShell
    ───────────────────────────────────────────────────────────── */
 export const ResizableMapShell = ({
