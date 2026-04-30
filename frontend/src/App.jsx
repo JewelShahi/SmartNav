@@ -368,6 +368,16 @@ const App = () => {
                 );
               })}
 
+              {/* ── ORIGIN LEADER (start of first segment → origin pin) ── */}
+              {routeData?.segments?.[0] && routeData?.optimizedOrder?.[0]?.point && (
+                <MarkerLeader
+                  id="leader-origin"
+                  from={routeData.segments[0].geometry.coordinates[0]}
+                  to={[routeData.optimizedOrder[0].point.lng, routeData.optimizedOrder[0].point.lat]}
+                  color="#ef4444"
+                />
+              )}
+
               {/* ── MARKERS (Using new StopMarker component) ── */}
               {routeData?.optimizedOrder?.map((point, i) => {
                 if (point.isOrigin && i !== 0) return null;
