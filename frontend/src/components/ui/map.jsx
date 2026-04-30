@@ -7,12 +7,7 @@ import MapLibre, {
   useMap,
 } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
-import SEG_COLORS from  "../colors/segColor";
-
-/* ─────────────────────────────────────────────────────────────
-   Segment colour palette — exported so App & RouteSummary share
-   ───────────────────────────────────────────────────────────── */
-
+import SEG_COLORS from "../colors/segColor";
 
 /* ─────────────────────────────────────────────────────────────
    Map
@@ -61,7 +56,7 @@ export const Map = React.forwardRef(
         {children}
 
         <div className="absolute bottom-2 right-2 z-10 text-[9px] text-black/30 dark:text-white/25 font-medium select-none pointer-events-none">
-          © CARTO · © OpenStreetMap
+          © <a href="https://openfreemap.org" target="_blank">OpenFreeMap</a> · © <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors
         </div>
       </MapLibre>
     );
@@ -166,7 +161,7 @@ export const RouteMarker = ({
   address = "",
 }) => {
   const [hovered, setHovered] = React.useState(false);
-  
+
   // Short address for the clean inline pill
   const short = address ? address.split(",")[0] : "";
   // FULL address for the detailed tooltip (nothing skipped)

@@ -59,8 +59,8 @@ const StopMarker = ({ point, index, color, isOrigin }) => {
             width: 28,
             height: 28,
             borderRadius: '50%',
-            background: isOrigin ? "white" : color,
-            color: isOrigin ? color : "white",
+            background: color,
+            color: "white",
             fontSize: 12,
           }}
         >
