@@ -346,7 +346,7 @@ const App = () => {
                     />
                     <MapLayer id={`line-${i}`} type="line"
                       layout={{ 'line-cap': 'round', 'line-join': 'round' }}
-                      paint={{ 'line-color': seg.color ?? SEG_COLORS[i % SEG_COLORS.length], 'line-width': 10, 'line-opacity': 0.95 }}
+                      paint={{ 'line-color': seg.color ?? SEG_COLORS[i % SEG_COLORS.length], 'line-width': 7, 'line-opacity': 0.95 }}
                     />
                   </MapSource>
                 );

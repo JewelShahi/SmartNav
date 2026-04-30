@@ -188,11 +188,15 @@ export const RouteSummary = ({ data }) => {
                     <div
                       className="w-7 h-1.5 rounded-full shrink-0 transition-all duration-200 group-hover:w-9"
                       style={{
-                        background: seg.isReturn ? 'none' : seg.color,
-                        opacity: seg.isReturn ? 0.5 : 1,
-                        boxShadow: !seg.isReturn ? `0 0 6px ${seg.color}30` : 'none',
+                        background: seg.isReturn
+                          ? 'none'
+                          : seg.color,
+                        opacity: seg.isReturn ? 0.6 : 1,
+                        boxShadow: !seg.isReturn
+                          ? `0 0 6px ${seg.color}30`
+                          : 'none',
                         backgroundImage: seg.isReturn
-                          ? `repeating-linear-gradient(90deg,${seg.color} 0,${seg.color} 4px,transparent 4px,transparent 8px)`
+                          ? `repeating-linear-gradient(90deg, ${theme === 'dark' ? '#ffffff' : '#000000'} 0, ${theme === 'dark' ? '#ffffff' : '#000000'} 4px, transparent 4px, transparent 8px)`
                           : undefined
                       }}
                     />
