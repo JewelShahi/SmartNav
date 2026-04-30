@@ -11,8 +11,6 @@ import routeRoutes from "./routes/route.js";
 import healthRoutes from "./routes/health.js";
 
 const app = express();
-
-// Use the PORT from .env strictly
 const PORT = process.env.PORT || 5000;
 
 // 1. Security Middleware
@@ -23,7 +21,8 @@ app.use(
     origin: [
       "http://localhost:3000", 
       "http://localhost:3001",
-      /\.vercel\.app$/ // This allows any Vercel preview/production URL
+      // You can keep the Vercel regex or remove it if strictly local
+      /\.vercel\.app$/ 
     ],
     credentials: true,
   }),
@@ -31,75 +30,52 @@ app.use(
 
 app.use(express.json({ limit: "10kb" }));
 
-// 2. Optimized Rate Limiting Strategy
+// 2. Rate Limiting
 const searchLimiter = rateLimit({
   windowMs: 1 * 60 * 1000,
   max: 60,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { error: "Search limit reached. Please wait a moment." },
+  message: { error: "Too many requests, please try again later." },
 });
 
 const optimizeLimiter = rateLimit({
   windowMs: 1 * 60 * 1000,
   max: 10,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { error: "Optimization limit reached. Please wait a minute." },
+  message: { error: "Optimization limit reached." },
 });
 
-// 3. Request Logging Middleware
+// 3. Logging
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
   next();
 });
 
-// Debug: Log all requests before they reach routes
-app.use((req, res, next) => {
-  console.log(`[DEBUG] Incoming: ${req.method} ${req.url}`);
-  next();
-});
-
-// 4. Routes
-console.log("Registering routes (without /api prefix for Vercel Compatibility)...");
-console.log(" /health ->", healthRoutes ? "loaded" : "missing");
-console.log(" /geocode ->", geocodeRoutes ? "loaded" : "missing");
-console.log(" /route ->", routeRoutes ? "loaded" : "missing");
-
-// IMPORTANT: Remove the "/api" prefix here
-app.use("/health", healthRoutes);
-app.use("/geocode", searchLimiter, geocodeRoutes);
-app.use("/route", optimizeLimiter, routeRoutes);
+// 4. Routes 
+// REVERTED: Added back the "/api" prefix for standard local/VPS structure
+app.use("/api/health", healthRoutes);
+app.use("/api/geocode", searchLimiter, geocodeRoutes);
+app.use("/api/route", optimizeLimiter, routeRoutes);
 
 // 5. 404 Handler
 app.use((req, res) => {
-  res.status(404).json({ error: "Route not found" });
+  res.status(404).json({ error: "API Route not found" });
 });
 
 // 6. Global Error Handler
 app.use((err, req, res, next) => {
-  console.error("[Global Error]", err.message);
-
-  const isDev = process.env.NODE_ENV === "development";
-
+  console.error("[Global Error]", err.stack);
   res.status(err.status || 500).json({
-    error: err.message || "Internal server error",
-    ...(isDev && { stack: err.stack }),
+    error: err.message || "Internal server error"
   });
 });
 
 // 7. Start Server
-if (process.env.NODE_ENV !== "production") {
-  app.listen(PORT, () => {
-    console.log(`Backend running on port ${PORT}`);
-    console.log(`CORS allowed for: http://localhost:3000`);
-    console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
-    console.log(
-      `ORS API: ${process.env.ORS_API_KEY ? "Configured" : "Missing"}`,
-    );
-    console.log(
-      `OpenCage: ${process.env.OPENCAGE_API_KEY ? "Configured" : "Missing"}`,
-    );
-  });
-}
+// REVERTED: Removed the production check so it always listens on the PORT
+app.listen(PORT, () => {
+  console.log(`Backend server started successfully`);
+  console.log(`Listening on port: ${PORT}`);
+  console.log(`Base Path: http://localhost:${PORT}/api`);
+  console.log(`ORS API: ${process.env.ORS_API_KEY ? "Connected" : "Not Found"}`);
+  console.log(`OpenCage: ${process.env.OPENCAGE_API_KEY ? "Connected" : "Not Found"}`);
+});
+
 export default app;

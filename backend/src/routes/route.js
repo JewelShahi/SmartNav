@@ -4,6 +4,10 @@ import { geocodeAddress } from "../services/geocodeService.js";
 
 const router = express.Router();
 
+/**
+ * POST /api/route/optimize
+ * RESTORED: Standard sequential processing for standalone execution
+ */
 router.post("/optimize", async (req, res, next) => {
   try {
     const { origin, stops, options = {} } = req.body;
@@ -18,11 +22,19 @@ router.post("/optimize", async (req, res, next) => {
         })
       : [];
 
-    if (validStops.length === 0) return res.status(400).json({ error: "At least one stop is required" });
+    if (validStops.length === 0) {
+      return res.status(400).json({ error: "At least one stop is required" });
+    }
 
+    // Resolves strings to coordinates using the Geocode Service
     const resolveToCoords = async (input) => {
       if (typeof input === 'object' && input !== null && input.lat && input.lng) {
-        return { lat: input.lat, lng: input.lng, address: input.address || '', label: input.label || input.address || '' };
+        return { 
+          lat: input.lat, 
+          lng: input.lng, 
+          address: input.address || '', 
+          label: input.label || input.address || '' 
+        };
       }
       const str = typeof input === 'object' ? input.address : input;
       const result = await geocodeAddress(str);
@@ -37,8 +49,13 @@ router.post("/optimize", async (req, res, next) => {
     const resolvedOrigin = resolvedPoints[0];
     const resolvedStops = resolvedPoints.slice(1);
 
-    const result = await optimizeRoute(resolvedOrigin, resolvedStops, { ...options, roundTrip: true });
+    // Call the restored service logic
+    const result = await optimizeRoute(resolvedOrigin, resolvedStops, { 
+      ...options, 
+      roundTrip: true 
+    });
 
+    // Map labels back to the optimized order
     const allLabels = [
       typeof origin === 'object' ? (origin.address || '') : origin,
       ...validStops.map(s => typeof s === 'object' ? (s.address || '') : s)
@@ -53,7 +70,7 @@ router.post("/optimize", async (req, res, next) => {
   } catch (err) {
     console.error("[Route API Error]:", err.message);
     res.status(500).json({ 
-      error: "Route calculation failed. Check if addresses are valid.",
+      error: "Route calculation failed.",
       details: err.message 
     });
   }

@@ -6,7 +6,6 @@ const geocodeCache = new NodeCache({ stdTTL: 3600 });
 
 /**
  * Geocode an address string to lat/lng using multiple providers with fallback.
- * Priority: OpenCage → Nominatim
  */
 export const geocodeAddress = async (address) => {
   if (!address || typeof address !== 'string') {
@@ -17,23 +16,20 @@ export const geocodeAddress = async (address) => {
   const cacheKey = `geocode:${normalized}`;
 
   const cached = geocodeCache.get(cacheKey);
-  if (cached) {
-    console.log(`[Geocode] Cache hit for: ${address}`);
-    return cached;
-  }
+  if (cached) return cached;
 
   let result = null;
 
-  // OpenCage first
+  // OpenCage Priority
   if (process.env.OPENCAGE_API_KEY) {
     try {
       result = await geocodeWithOpenCage(address);
     } catch (err) {
-      console.warn('[Geocode] OpenCage failed, falling back:', err.message);
+      console.warn('[Geocode] OpenCage failed:', err.message);
     }
   }
 
-  // Fallback Nominatim
+  // Nominatim Fallback
   if (!result) {
     try {
       result = await geocodeWithNominatim(address);
@@ -42,9 +38,7 @@ export const geocodeAddress = async (address) => {
     }
   }
 
-  if (!result) {
-    throw new Error(`Could not geocode address: "${address}"`);
-  }
+  if (!result) throw new Error(`Could not geocode address: "${address}"`);
 
   geocodeCache.set(cacheKey, result);
   return result;
@@ -144,6 +138,7 @@ export const autocompleteAddress = async (query, lat = null, lng = null) => {
   let results = [];
 
   try {
+    // Standard Photon call
     results = await autocompleteWithPhoton(query, lat, lng);
   } catch (err) {
     console.warn('[Autocomplete] Photon failed:', err.message);

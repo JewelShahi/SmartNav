@@ -17,15 +17,14 @@ const validateCoord = (val) => {
 
 /**
  * GET /api/geocode/autocomplete?q=...
- * Used for dynamic suggestions as the user types.
+ * RESTORED: Standard parameter passing for local standalone logic.
  */
 router.get("/autocomplete", async (req, res, next) => {
   try {
     const { q, lat, lng } = req.query;
 
     // 1. CHARACTER GATE:
-    // Do not hit external APIs if the query is shorter than 3 characters.
-    // This stops "blasts" of requests while the user is just starting to type.
+    // Matches the backend service requirement (length < 3)
     if (!q || q.trim().length < 3) {
       return res.json([]);
     }
@@ -33,10 +32,10 @@ router.get("/autocomplete", async (req, res, next) => {
     const biasLat = validateCoord(lat) ? parseFloat(lat) : null;
     const biasLng = validateCoord(lng) ? parseFloat(lng) : null;
 
+    // Calls service with direct parameters
     const suggestions = await autocompleteAddress(q.trim(), biasLat, biasLng);
     res.json(suggestions);
   } catch (err) {
-    // If we hit a rate limit from the provider, return a clean error
     if (err.response?.status === 429) {
       return res
         .status(429)
@@ -48,18 +47,15 @@ router.get("/autocomplete", async (req, res, next) => {
 
 /**
  * POST /api/geocode
- * Body: { address: string }
  */
 router.post("/", async (req, res, next) => {
   try {
     const { address } = req.body;
-
     if (!address || typeof address !== "string" || address.trim().length < 3) {
       return res
         .status(400)
         .json({ error: "Address must be at least 3 characters" });
     }
-
     const result = await geocodeAddress(address.trim());
     res.json(result);
   } catch (err) {
@@ -68,16 +64,14 @@ router.post("/", async (req, res, next) => {
 });
 
 /**
- * GET /api/geocode/reverse?lat=...&lng=...
+ * GET /api/geocode/reverse
  */
 router.get("/reverse", async (req, res, next) => {
   try {
     const { lat, lng } = req.query;
-
     if (!validateCoord(lat) || !validateCoord(lng)) {
       return res.status(400).json({ error: "Invalid latitude or longitude" });
     }
-
     const result = await reverseGeocode(parseFloat(lat), parseFloat(lng));
     res.json(result);
   } catch (err) {

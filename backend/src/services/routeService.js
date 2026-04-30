@@ -1,8 +1,7 @@
 import axios from "axios";
 
 const SEGMENT_COLORS = [
-  "#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6",
-  "#06b6d4", "#f97316", "#84cc16", "#ec4899", "#14b8a6"
+  "#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"
 ];
 
 export const getSegmentColor = (index, isReturn) => {
@@ -10,13 +9,19 @@ export const getSegmentColor = (index, isReturn) => {
   return SEGMENT_COLORS[index % SEGMENT_COLORS.length];
 };
 
+/**
+ * Optimized Route Calculation
+ * RESTORED: Standard async/await flow for standalone Node execution
+ */
 export const optimizeRoute = async (origin, stops, options = {}) => {
   const { optimizeFor = "duration" } = options;
   const allPoints = [origin, ...stops];
   const numPoints = allPoints.length;
 
+  // 1. Build Distance Matrix via OSRM
   const matrix = await buildDistanceMatrix(allPoints);
 
+  // 2. Simple Nearest Neighbor TSP Algorithm
   const optimizedOrder = [0];
   const unvisited = new Set(Array.from({ length: numPoints - 1 }, (_, i) => i + 1));
   let currentIndex = 0;
@@ -33,17 +38,20 @@ export const optimizeRoute = async (origin, stops, options = {}) => {
     currentIndex = nearestIndex;
   }
 
-  optimizedOrder.push(0);
+  optimizedOrder.push(0); // Return to origin
 
+  // 3. Get Geometry for segments
   const segments = [];
   for (let i = 0; i < optimizedOrder.length - 1; i++) {
     const from = allPoints[optimizedOrder[i]];
     const to = allPoints[optimizedOrder[i + 1]];
     const isReturn = i === optimizedOrder.length - 2;
     const coords = `${from.lng},${from.lat};${to.lng},${to.lat}`;
+    
     const res = await axios.get(
       `https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson`
     );
+    
     segments.push({
       segmentIndex: i,
       fromIndex: optimizedOrder[i],
