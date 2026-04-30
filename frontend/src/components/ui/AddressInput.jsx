@@ -61,7 +61,7 @@ export const AddressInput = ({ value, onChange, placeholder = 'Search address...
       abortRef.current = new AbortController();
       setLoading(true);
       try {
-        // FIX 1: Pass null for lat/lng to shift the signal to the 4th parameter
+        // Pass null for lat/lng to shift the signal to the 4th parameter
         const results = await GeocodeService.autocomplete(
           value,
           null,
@@ -69,7 +69,7 @@ export const AddressInput = ({ value, onChange, placeholder = 'Search address...
           abortRef.current.signal
         );
 
-        // FIX 2: Ensure 'list' is always an array to prevent the ".map is not a function" error
+        // Ensure 'list' is always an array to prevent the ".map is not a function" error
         const list = Array.isArray(results) ? results : [];
         setSuggestions(list);
 

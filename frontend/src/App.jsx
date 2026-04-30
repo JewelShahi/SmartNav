@@ -7,7 +7,7 @@ import { AddressInput } from './components/ui/AddressInput';
 import { RouteSummary } from './components/ui/RouteSummary';
 import { useTheme } from "./hooks/ThemeContext";
 import {
-  Plus, Zap, X, Navigation, Home, Save,
+  Plus, Zap, X, Trash2, Navigation, Home, Save,
   Route, Loader2, RotateCcw, CheckCircle2,
   Waypoints, MapPin, Clock, TrendingUp, Target,
 } from 'lucide-react';
@@ -272,7 +272,7 @@ const App = () => {
                         onClick={() => removeStop(i)}
                         className="shrink-0 btn btn-ghost btn-circle btn-xs opacity-0 group-hover/stop:opacity-100 text-base-content/20 hover:text-error hover:bg-error/10 transition-all"
                       >
-                        <X size={11} strokeWidth={2.5} />
+                        <Trash2 size={11} strokeWidth={2.5} />
                       </button>
                     )}
                   </div>
