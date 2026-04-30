@@ -12,12 +12,7 @@ import {
   Waypoints, MapPin, Clock, TrendingUp, Target,
 } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
-
-export const SEG_COLORS = [
-  '#3b82f6', '#10b981', '#f59e0b', '#ef4444',
-  '#8b5cf6', '#f97316', '#84cc16', '#ec4899',
-  '#14b8a6', '#06b6d4',
-];
+import SEG_COLORS from './components/colors/segColor';
 
 const safeCoord = (val) => {
   const n = parseFloat(val);
