@@ -33,7 +33,8 @@ export const Map = React.forwardRef(
       className = "",
       center = [0, 0],
       zoom = 12,
-      mapStyle = "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json",
+      // mapStyle = "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json",
+      mapStyle = "https://tiles.openfreemap.org/styles/liberty",
       children,
       style,
       ...props
