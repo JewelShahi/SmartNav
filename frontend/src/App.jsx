@@ -342,11 +342,11 @@ const App = () => {
                     />
                     <MapLayer id={`out-${i}`} type="line"
                       layout={{ 'line-cap': 'round', 'line-join': 'round' }}
-                      paint={{ 'line-color': '#ffffff', 'line-width': 15, 'line-opacity': 0.7 }}
+                      paint={{ 'line-color': '#ffffff', 'line-width': 12, 'line-opacity': 0.7 }}
                     />
                     <MapLayer id={`line-${i}`} type="line"
                       layout={{ 'line-cap': 'round', 'line-join': 'round' }}
-                      paint={{ 'line-color': seg.color ?? SEG_COLORS[i % SEG_COLORS.length], 'line-width': 5, 'line-opacity': 0.95 }}
+                      paint={{ 'line-color': seg.color ?? SEG_COLORS[i % SEG_COLORS.length], 'line-width': 10, 'line-opacity': 0.95 }}
                     />
                   </MapSource>
                 );
