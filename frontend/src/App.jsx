@@ -327,13 +327,9 @@ const App = () => {
                 if (seg.isReturn) {
                   return (
                     <MapSource key={`ret-${i}`} id={`ret-${i}`} type="geojson" data={{ type: 'Feature', geometry: seg.geometry }}>
-                      <MapLayer id={`ret-outline-${i}`} type="line"
-                        layout={{ 'line-cap': 'round', 'line-join': 'round' }}
-                        paint={{ 'line-color': '#ffffff', 'line-width': 7, 'line-opacity': 0.75, 'line-dasharray': [4, 4] }}
-                      />
                       <MapLayer id={`ret-line-${i}`} type="line"
                         layout={{ 'line-cap': 'round', 'line-join': 'round' }}
-                        paint={{ 'line-color': '#000000', 'line-width': 3, 'line-opacity': 0.8, 'line-dasharray': [4, 4] }}
+                        paint={{ 'line-color': (theme === 'dark') ? '#ffffff' : '#000000', 'line-width': 3, 'line-opacity': 0.8, 'line-dasharray': [4, 4] }}
                       />
                     </MapSource>
                   );
