@@ -21,7 +21,6 @@ const safeCoord = (val) => {
 
 /* ─────────────────────────────────────────────────────────────
    StopMarker Component
-   Using React State instead of CSS group-hover guarantees it works.
 ──────────────────────────────────────────────────────────── */
 const StopMarker = ({ point, index, color, isOrigin }) => {
   const [hovered, setHovered] = useState(false);
@@ -368,7 +367,7 @@ const App = () => {
                 );
               })}
 
-              {/* ── ORIGIN LEADER (start of first segment → origin pin) ── */}
+              {/* ── ORIGIN LEADER (start of first segment -> origin pin) ── */}
               {routeData?.segments?.[0] && routeData?.optimizedOrder?.[0]?.point && (
                 <MarkerLeader
                   id="leader-origin"
