@@ -2,13 +2,6 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 
 const api = axios.create({
-  /**
-   * RESTORED: Standard baseURL logic.
-   * Priority: 
-   * 1. Environment variable VITE_API_URL
-   * 2. Localhost:5000/api for development
-   * 3. Relative /api for production build
-   */
   baseURL: import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:5000/api' : '/api'),
   timeout: 15000,
   headers: { 'Content-Type': 'application/json' }
