@@ -12,8 +12,8 @@ export const getSegmentColor = (index, isReturn) => {
 };
 
 /**
- * Nearest Neighbor heuristic — produces the initial upper bound for B&B.
- * Returns the tour as an array of point indices (origin → ... → origin).
+ * Nearest Neighbor heuristic - produces the initial upper bound for B&B.
+ * Returns the tour as an array of point indices (origin -> ... -> origin).
  */
 const nearestNeighborTour = (matrix, numPoints, optimizeFor) => {
   const order = [0];
@@ -98,7 +98,7 @@ function branchAndBound(matrix, optimizeFor) {
   while (stack.length > 0) {
     const { path, visited, currentCost, currentNode } = stack.pop();
 
-    // All nodes visited — close the tour back to origin
+    // All nodes visited - close the tour back to origin
     if (visited.size === numPoints) {
       const totalCost = currentCost + matrix[currentNode][0][optimizeFor];
       if (totalCost < bestCost) {
