@@ -150,7 +150,7 @@ export const RouteLayer = ({
 };
 
 /* ─────────────────────────────────────────────────────────────
-   RouteMarker — Google Maps style with FULL DETAILS on hover
+   RouteMarker - Google Maps style with FULL DETAILS on hover
    ───────────────────────────────────────────────────────────── */
 export const RouteMarker = ({
   longitude,
@@ -164,7 +164,7 @@ export const RouteMarker = ({
 
   // Short address for the clean inline pill
   const short = address ? address.split(",")[0] : "";
-  // FULL address for the detailed tooltip (nothing skipped)
+  // full address for the detailed tooltip
   const full = address || "";
 
   return (
@@ -174,7 +174,7 @@ export const RouteMarker = ({
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
       >
-        {/* ── DETAILED TOOLTIP (Shows EVERYTHING) ── */}
+        {/* ── DETAILED TOOLTIP  ── */}
         {hovered && full && (
           <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 z-50 pointer-events-none animate-in fade-in zoom-in-95 duration-150 w-max max-w-[300px]">
             <div
@@ -218,7 +218,7 @@ export const RouteMarker = ({
             {label}
           </div>
 
-          {/* Short Address Text (Expands smoothly on hover) */}
+          {/* Short Address Text */}
           <span
             className="text-xs font-semibold whitespace-nowrap transition-all duration-200 overflow-hidden h-full flex items-center"
             style={{
@@ -256,7 +256,7 @@ export const RouteMarker = ({
 };
 
 /* ─────────────────────────────────────────────────────────────
-   MarkerLeader — dashed line from route end → marker pin
+   MarkerLeader - dashed line from route end → marker pin
    ───────────────────────────────────────────────────────────── */
 export const MarkerLeader = ({ id, from, to, color = "#3b82f6" }) => {
   const geojson = React.useMemo(() => ({
