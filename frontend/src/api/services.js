@@ -5,7 +5,6 @@ export const RouteService = {
    * POST /api/route/optimize
    */
   optimize: async (origin, stops, roundTrip = false) => {
-    // RESTORED: Standard cleanup and object structure for local Express
     const filteredStops = stops.filter(s => s && (typeof s === 'string' ? s.trim() : true));
     
     return api.post("/route/optimize", {
@@ -27,7 +26,6 @@ export const RouteService = {
 export const GeocodeService = {
   /**
    * GET /api/geocode/autocomplete
-   * RESTORED: Standard parameter order (query, lat, lng, signal)
    */
   autocomplete: async (query, lat = null, lng = null, signal = null) => {
     const trimmedQuery = query?.trim() || '';
@@ -45,10 +43,6 @@ export const GeocodeService = {
         signal 
       });
 
-      /**
-       * RESTORED: Since axios.js uses (response) => response.data,
-       * 'response' here is usually already the array.
-       */
       return Array.isArray(response) ? response : (response?.data || []);
     } catch (error) {
       // Ignore AbortController cancellations
