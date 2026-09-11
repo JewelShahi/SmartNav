@@ -17,13 +17,12 @@ const validateCoord = (val) => {
 
 /**
  * GET /api/geocode/autocomplete?q=...
- * RESTORED: Standard parameter passing for local standalone logic.
+ * Standard parameter passing for local standalone logic.
  */
 router.get("/autocomplete", async (req, res, next) => {
   try {
     const { q, lat, lng } = req.query;
-
-    // 1. CHARACTER GATE:
+    
     // Matches the backend service requirement (length < 3)
     if (!q || q.trim().length < 3) {
       return res.json([]);
