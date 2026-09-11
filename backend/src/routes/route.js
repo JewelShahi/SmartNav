@@ -6,7 +6,6 @@ const router = express.Router();
 
 /**
  * POST /api/route/optimize
- * RESTORED: Standard sequential processing for standalone execution
  */
 router.post("/optimize", async (req, res, next) => {
   try {
